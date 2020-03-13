@@ -1,9 +1,11 @@
-package br.com.zup.inventory.configuration;
+package br.com.zup.payment.configuration;
 
-import br.com.zup.inventory.event.OrderCreatedEvent;
+import br.com.zup.payment.event.TicketBookedEvent;
+import br.com.zup.payment.service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,21 +19,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaConfiguration {
+public class KafkaConsumerConfiguration {
 
     private String bootstrap;
     private ObjectMapper objectMapper;
+    private PaymentService paymentService;
 
-    public KafkaConfiguration(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrap,
-                              ObjectMapper objectMapper) {
+    @Autowired
+    public KafkaConsumerConfiguration(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrap,
+                                      ObjectMapper objectMapper, PaymentService paymentService) {
         this.bootstrap = bootstrap;
         this.objectMapper = objectMapper;
+        this.paymentService = paymentService;
     }
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "inventory-group-id");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "payment-group-id");
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -46,9 +51,12 @@ public class KafkaConfiguration {
         return factory;
     }
 
-    @KafkaListener(topics = "created-orders", groupId = "inventory-group-id")
-    public void listen(String message) throws IOException {
-        OrderCreatedEvent event = this.objectMapper.readValue(message, OrderCreatedEvent.class);
-        System.out.println(event);
+
+    @KafkaListener(topics = "booked-tickets", groupId = "payment-group-id")
+    public void listenBooked(String message) throws IOException {
+        TicketBookedEvent event = this.objectMapper.readValue(message, TicketBookedEvent.class);
+        System.out.println("Trying pay OrderId: " + event.getOrderId() + " Amount: " + event.getAmount());
+        this.paymentService.process(event);
     }
+
 }

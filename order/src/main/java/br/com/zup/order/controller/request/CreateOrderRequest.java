@@ -4,7 +4,9 @@ import br.com.zup.order.entity.Order;
 import br.com.zup.order.entity.OrderItem;
 
 import java.math.BigDecimal;
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -64,6 +66,10 @@ public class CreateOrderRequest {
 
         public String getId() {
             return id;
+        }
+
+        public Map.Entry<String, Integer> getItemEntry() {
+            return new AbstractMap.SimpleEntry<String, Integer>(this.getId(), this.getQuantity());
         }
 
         public void setId(String id) {

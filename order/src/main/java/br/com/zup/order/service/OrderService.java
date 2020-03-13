@@ -11,4 +11,6 @@ public interface OrderService {
 
     List<OrderResponse> findAll();
 
+    void updateStatus(String orderId, String status);
+
 }
