@@ -31,9 +31,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void updateStatus(String orderId, String status) {
-        Order order = this.orderRepository.getOne(orderId);
-        order.setStatus(status);
-        this.orderRepository.save(order);
+        System.out.println("Order " + orderId + " changed to " + status);
+        this.orderRepository.updateStatus(orderId, status);
     }
 
     @Override
