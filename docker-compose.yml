@@ -1,5 +1,19 @@
 version: '3'
 services:
+  jaeger:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 14268:14268
+      - 14250:14250
+      - 9411:9411
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
   zookeeper:
     image: zookeeper:3.4.13
     container_name: zookeeper
@@ -24,6 +38,8 @@ services:
     environment:
       SERVER_PORT: 8080
       KAFKA_BROKERS: kafka:9092,kafka:29092
+      JAEGER_HOST: jaeger
+      JAEGER_PORT: 5775
   inventory:
     image: inventory
     container_name: inventory
@@ -32,6 +48,8 @@ services:
     environment:
       SERVER_PORT: 8081
       KAFKA_BROKERS: kafka:9092,kafka:29092
+      JAEGER_HOST: jaeger
+      JAEGER_PORT: 5775
   payment:
     image: payment
     container_name: payment
@@ -40,3 +58,5 @@ services:
     environment:
       SERVER_PORT: 8082
       KAFKA_BROKERS: kafka:9092,kafka:29092
+      JAEGER_HOST: jaeger
+      JAEGER_PORT: 5775
